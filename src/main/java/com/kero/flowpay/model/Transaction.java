@@ -46,6 +46,7 @@ public class Transaction {
         this.createdAt = LocalDateTime.now();
     }
 
+
     public Long getId() {
         return id;
     }
@@ -69,4 +70,5 @@ public class Transaction {
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+
 }

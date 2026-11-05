@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 @RestController
 @RequestMapping("/api/wallet")
 public class WalletController {
@@ -86,6 +89,20 @@ public class WalletController {
             BigDecimal amount
     ) {}
 
+
+    public record TransferRequest(
+
+        @NotBlank
+        @Email
+        String recipientEmail,
+
+        @NotNull
+        @DecimalMin(value = "0.0", inclusive = false)
+        BigDecimal amount
+
+) {}
+
+
     public record TransactionResponse(
             Long id,
             BigDecimal amount,
@@ -93,4 +110,26 @@ public class WalletController {
             String status,
             LocalDateTime createdAt
     ) {}
+
+
+
+
+@PostMapping("/transfer")
+public Map<String, Object> transfer(
+        @Valid @RequestBody TransferRequest request) {
+
+    String senderEmail = getCurrentUserEmail();
+
+    walletService.transfer(
+            senderEmail,
+            request.recipientEmail(),
+            request.amount()
+    );
+
+    return Map.of(
+            "message", "Transfer completed successfully",
+            "amount", request.amount()
+    );
+}
+
 }
