@@ -3,6 +3,9 @@ package com.kero.flowpay.config;
 
 import com.kero.flowpay.security.JwtAuthenticationFilter;
 import com.kero.flowpay.security.JwtService;
+
+import jakarta.servlet.DispatcherType;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -42,14 +45,20 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
+                // Allow error dispatches without authentication
+                .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+
+                // Public endpoints
                 .requestMatchers(
                     "/api/users/register",
                     "/api/auth/login"
                 ).permitAll()
 
+                // Only admins can access all users
                 .requestMatchers(HttpMethod.GET, "/api/users")
                 .hasRole("ADMIN")
 
+                // All other endpoints require authentication
                 .anyRequest().authenticated()
             )
 
