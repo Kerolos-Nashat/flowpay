@@ -61,6 +61,45 @@ public class WalletService {
         return wallet;
     }
 
+
+
+@Transactional
+public Wallet withdraw(String email, BigDecimal amount) {
+
+    // 1. Validate amount
+    if (amount == null ||
+            amount.compareTo(BigDecimal.ZERO) <= 0) {
+        throw new IllegalArgumentException("Amount must be positive");
+    }
+
+    // 2. Get user's wallet
+    Wallet wallet = getWalletByEmail(email);
+
+    // 3. Check sufficient balance
+    if (wallet.getBalance().compareTo(amount) < 0) {
+        throw new IllegalArgumentException("Insufficient balance");
+    }
+
+    // 4. Deduct amount
+    wallet.setBalance(
+            wallet.getBalance().subtract(amount)
+    );
+
+    // 5. Create withdrawal transaction
+    Transaction transaction = new Transaction(
+            amount,
+            TransactionType.WITHDRAWAL,
+            TransactionStatus.COMPLETED,
+            wallet
+    );
+
+    // 6. Save transaction
+    transactionRepository.save(transaction);
+
+    return wallet;
+}
+
+
     // TRANSACTION HISTORY
     public List<Transaction> getTransactionHistory(String email) {
 

@@ -59,6 +59,30 @@ public class WalletController {
         );
     }
 
+
+   @PostMapping("/withdraw")
+   public Map<String, Object> withdraw(
+        @Valid @RequestBody WithdrawRequest request) {
+
+    String email = getCurrentUserEmail();
+
+    Wallet wallet = walletService.withdraw(
+            email,
+            request.amount()
+    );
+
+    return Map.of(
+            "walletId", wallet.getId(),
+            "balance", wallet.getBalance()
+    );
+}
+
+ public record WithdrawRequest(
+            @NotNull
+            @DecimalMin(value = "0.0", inclusive = false)
+            BigDecimal amount
+    ) {}
+
     @GetMapping("/transactions")
     public List<TransactionResponse> getTransactionHistory() {
 
