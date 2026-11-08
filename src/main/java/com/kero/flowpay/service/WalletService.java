@@ -15,6 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.kero.flowpay.exception.ResourceNotFoundException;
+import com.kero.flowpay.exception.BadRequestException;
+import com.kero.flowpay.exception.InsufficientBalanceException;
+
 @Service
 public class WalletService {
 
@@ -32,7 +36,7 @@ public class WalletService {
     public Wallet getWalletByEmail(String email) {
         return walletRepository.findByUserEmailIgnoreCase(email)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Wallet not found"));
+                        new ResourceNotFoundException("Wallet not found"));
     }
 
     // DEPOSIT
@@ -41,7 +45,7 @@ public class WalletService {
 
         if (amount == null ||
                 amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                     "Amount must be positive");
         }
 
@@ -69,7 +73,7 @@ public Wallet withdraw(String email, BigDecimal amount) {
     // 1. Validate amount
     if (amount == null ||
             amount.compareTo(BigDecimal.ZERO) <= 0) {
-        throw new IllegalArgumentException("Amount must be positive");
+        throw new BadRequestException("Amount must be positive");
     }
 
     // 2. Get user's wallet
@@ -77,7 +81,7 @@ public Wallet withdraw(String email, BigDecimal amount) {
 
     // 3. Check sufficient balance
     if (wallet.getBalance().compareTo(amount) < 0) {
-        throw new IllegalArgumentException("Insufficient balance");
+        throw new InsufficientBalanceException("Insufficient balance");
     }
 
     // 4. Deduct amount
@@ -119,13 +123,13 @@ public Wallet withdraw(String email, BigDecimal amount) {
         // 1. Validate amount
         if (amount == null ||
                 amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                     "Amount must be positive");
         }
-
+        
         // 2. Prevent self-transfer
         if (senderEmail.equalsIgnoreCase(recipientEmail)) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                     "Cannot transfer to yourself");
         }
 
@@ -141,12 +145,12 @@ public Wallet withdraw(String email, BigDecimal amount) {
         Wallet firstWallet = walletRepository
                 .findByUserEmailWithLock(firstEmail)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Wallet not found"));
+                        new ResourceNotFoundException("Wallet not found"));
 
         Wallet secondWallet = walletRepository
                 .findByUserEmailWithLock(secondEmail)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Wallet not found"));
+                        new ResourceNotFoundException("Wallet not found"));
 
         // 4. Identify sender and recipient
         Wallet senderWallet =
@@ -159,7 +163,7 @@ public Wallet withdraw(String email, BigDecimal amount) {
 
         // 5. Check sufficient balance
         if (senderWallet.getBalance().compareTo(amount) < 0) {
-            throw new IllegalArgumentException(
+            throw new InsufficientBalanceException(
                     "Insufficient balance");
         }
 

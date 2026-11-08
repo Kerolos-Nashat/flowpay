@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import com.kero.flowpay.exception.ResourceNotFoundException;
+import com.kero.flowpay.exception.BadRequestException;
+
 @Service
 public class UserService {
 
@@ -30,7 +33,7 @@ public class UserService {
     @Transactional
     public User register(String name, String email, String password) {
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new IllegalArgumentException("Email already registered");
+            throw new BadRequestException("Email already registered");
         }
 
         String hashedPassword = passwordEncoder.encode(password);
@@ -51,6 +54,6 @@ public class UserService {
     public User getUserByEmail(String email) {
         return userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("User not found"));
+                        new ResourceNotFoundException("User not found"));
     }
 }
